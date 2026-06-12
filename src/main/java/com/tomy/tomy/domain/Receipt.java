@@ -10,9 +10,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "receipt", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"user_id", "store_id", "recognized_date"})
-})
+@Table(name = "receipt")
 @Getter
 @Setter
 @NoArgsConstructor

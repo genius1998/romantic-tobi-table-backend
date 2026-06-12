@@ -35,7 +35,54 @@
 - **ORM:** Spring Data JPA
 - **Migration:** Flyway
 - **Security:** Spring Security, JWT
-- **External API:** Google Cloud Vision API, OpenAI API (GPT-4o-mini)
+- **External API:** Google Cloud Vision API, OpenAI API (gpt-5-nano, text-embedding-3-small)
+
+### 벡터 DB 기반 가게 매칭
+
+가게 매칭은 Qdrant 벡터 DB를 우선 조회하고, 검색된 후보를 이름/주소 점수와 LLM 보조 판정으로 검증합니다.
+가게 기준 데이터는 `src/main/resources/db/migration/V9__replace_store_with_merchant_excel.sql`에 반영된 `가맹점현황_조회_목록.xls` 기반 데이터입니다.
+
+```bash
+docker compose -f docker-compose.qdrant.yml up -d
+```
+
+`.env` 예시:
+
+```properties
+OPENAI_API_KEY=sk-...
+OPENAI_CHAT_MODEL=gpt-5-nano
+OPENAI_CHAT_REASONING_EFFORT=minimal
+OPENAI_EMBEDDING_MODEL=text-embedding-3-small
+OPENAI_EMBEDDING_DIMENSIONS=1536
+QDRANT_URL=http://localhost:6333
+QDRANT_COLLECTION=tomy_stores
+STORE_VECTOR_ENABLED=true
+STORE_VECTOR_ADMIN_TOKEN=change-this-token
+```
+
+로컬 MySQL에서 `Access denied for user 'tomy_app'@'localhost'`가 발생하면 MySQL 관리자 계정으로 아래 스크립트를 실행합니다.
+
+```bash
+mysql -u root -p < scripts/mysql-dev-setup.sql
+```
+
+가게 DB를 Qdrant에 색인:
+
+```bash
+curl -X POST http://localhost:8080/api/stores/vector/reindex \
+  -H "X-Admin-Token: change-this-token"
+```
+
+임의 입력값으로 매칭 후보와 판정 결과 확인:
+
+```bash
+curl -X POST http://localhost:8080/api/stores/match-preview \
+  -H "Content-Type: application/json" \
+  -d '{"storeName":"메가커피 금오공대점","city":"구미시","address":"경북 구미시 대학로"}'
+```
+
+`LEXICAL_FALLBACK_VECTOR_UNAVAILABLE`가 보이면 Qdrant가 실행 중이 아니므로 Docker Desktop을 시작한 뒤 `docker compose -f docker-compose.qdrant.yml up -d`와 벡터 색인을 다시 실행합니다.
+OpenAI 호출은 `.env`의 `OPENAI_API_KEY`를 우선 사용하며, 키는 `sk-`로 시작해야 합니다.
 - **Documentation:** Swagger (SpringDoc OpenAPI 2.2.0)
 - **Build Tool:** Gradle
 

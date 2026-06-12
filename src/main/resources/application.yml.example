@@ -1,0 +1,48 @@
+spring:
+  config:
+    import: optional:file:.env[.properties]
+  servlet:
+    multipart:
+      max-file-size: ${MAX_UPLOAD_FILE_SIZE:10MB}
+      max-request-size: ${MAX_UPLOAD_REQUEST_SIZE:10MB}
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/tomy_db?useSSL=false&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&characterEncoding=utf8&connectionCollation=utf8mb4_unicode_ci}
+    username: ${DB_USER:tomy_app}
+    password: ${DB_PASS:StrongPass!123}
+  flyway:
+    clean-on-validation-error: true
+    clean-disabled: false
+    validate-on-migrate: false
+    locations: classpath:db/migration
+
+gcp:
+  vision:
+    credentials: ${GCP_VISION_CREDENTIALS:}
+
+jwt:
+  secret: ${JWT_SECRET:tomy-local-development-jwt-secret-key-32bytes-minimum}
+  expiration-time: ${JWT_EXPIRATION_TIME:86400000}
+
+receipt:
+  duplicate-check:
+    enabled: ${RECEIPT_DUPLICATE_CHECK_ENABLED:true}
+
+openai:
+  api:
+    key: ${OPENAI_API_KEY:}
+  chat:
+    model: ${OPENAI_CHAT_MODEL:gpt-5-nano}
+    reasoning-effort: ${OPENAI_CHAT_REASONING_EFFORT:minimal}
+  embedding:
+    model: ${OPENAI_EMBEDDING_MODEL:text-embedding-3-small}
+    dimensions: ${OPENAI_EMBEDDING_DIMENSIONS:1536}
+
+store:
+  vector:
+    enabled: ${STORE_VECTOR_ENABLED:true}
+    candidate-limit: ${STORE_VECTOR_CANDIDATE_LIMIT:10}
+    admin-token: ${STORE_VECTOR_ADMIN_TOKEN:}
+    qdrant:
+      url: ${QDRANT_URL:http://localhost:6333}
+      api-key: ${QDRANT_API_KEY:}
+      collection: ${QDRANT_COLLECTION:tomy_stores}

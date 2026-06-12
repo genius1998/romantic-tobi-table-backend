@@ -5,7 +5,7 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.vision.v1.*;
 import com.google.protobuf.ByteString;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -13,14 +13,17 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Service
 public class GoogleVisionOcrService implements OcrService {
 
-    // application.yml: gcp.vision.credentials: classpath:keys/vision-sa.json
-    @Value("${gcp.vision.credentials}")
-    private Resource credentialsResource;
+    @Value("${gcp.vision.credentials:}")
+    private String credentialsLocation;
 
     @Override
     public OcrResult extractText(MultipartFile file) {
@@ -29,7 +32,7 @@ public class GoogleVisionOcrService implements OcrService {
         if (file.getSize() > 5L * 1024 * 1024)
             throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "파일 최대 5MB");
 
-        try (InputStream in = credentialsResource.getInputStream()) {
+        try (InputStream in = openCredentialsStream()) {
             GoogleCredentials cred = GoogleCredentials.fromStream(in);
             ImageAnnotatorSettings settings = ImageAnnotatorSettings.newBuilder()
                     .setCredentialsProvider(FixedCredentialsProvider.create(cred))
@@ -58,7 +61,55 @@ public class GoogleVisionOcrService implements OcrService {
         } catch (com.google.api.gax.rpc.PermissionDeniedException e) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Vision 권한 부족(roles/vision.aiUser 필요)");
         } catch (IOException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Vision 클라이언트 실패: " + e.getClass().getSimpleName());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Vision 클라이언트 실패: " + e.getMessage());
+        }
+    }
+
+    private InputStream openCredentialsStream() throws IOException {
+        String location = credentialsLocation == null ? "" : credentialsLocation.trim();
+        if (location.isBlank()) {
+            throw new IOException("GCP_VISION_CREDENTIALS가 설정되지 않았습니다.");
+        }
+
+        if (location.startsWith("classpath:")) {
+            String classpathLocation = location.substring("classpath:".length());
+            ClassPathResource resource = new ClassPathResource(classpathLocation);
+            if (!resource.exists()) {
+                throw new IOException("classpath OCR credentials not found: " + classpathLocation);
+            }
+            return resource.getInputStream();
+        }
+
+        Path credentialsPath = resolveFilePath(location);
+        if (Files.isDirectory(credentialsPath)) {
+            credentialsPath = firstJsonFile(credentialsPath);
+        }
+        if (!Files.exists(credentialsPath)) {
+            throw new IOException("OCR credentials file not found: " + credentialsPath);
+        }
+        if (!Files.isRegularFile(credentialsPath)) {
+            throw new IOException("OCR credentials path is not a file: " + credentialsPath);
+        }
+        return Files.newInputStream(credentialsPath);
+    }
+
+    private Path resolveFilePath(String location) {
+        String pathText = location.startsWith("file:")
+                ? location.substring("file:".length())
+                : location;
+        if (pathText.startsWith("/") && pathText.length() > 3 && pathText.charAt(2) == ':') {
+            pathText = pathText.substring(1);
+        }
+        return Paths.get(pathText).toAbsolutePath().normalize();
+    }
+
+    private Path firstJsonFile(Path directory) throws IOException {
+        try (Stream<Path> files = Files.list(directory)) {
+            return files
+                    .filter(path -> Files.isRegularFile(path) && path.getFileName().toString().toLowerCase().endsWith(".json"))
+                    .sorted()
+                    .findFirst()
+                    .orElseThrow(() -> new IOException("OCR credentials JSON not found in directory: " + directory));
         }
     }
 }

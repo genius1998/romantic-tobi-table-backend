@@ -23,4 +23,14 @@ public class Store {
 
     @Column(nullable = false)
     private String address;
+
+    private String district;
+
+    @Column(name = "primary_category")
+    private String primaryCategory;
+
+    @Column(name = "secondary_category")
+    private String secondaryCategory;
+
+    private String phone;
 }
