@@ -1,0 +1,159 @@
+{
+  "chatbot_name": "토미도우미",
+  "description": "토미키우기 앱의 AI 챗봇 인텐트 정의",
+  "intents": [
+    {
+      "id": "APP_HOW_TO_RECEIPT",
+      "category": "앱 사용법",
+      "question_patterns": [
+        "영수증 인증은 어떻게",
+        "영수증 어떻게 올려",
+        "영수증 등록 방법",
+        "포인트 어떻게 쌓아"
+      ],
+      "answer_source": "docs/app_guide.md#영수증-인증-방법",
+      "requires_user_context": false
+    },
+    {
+      "id": "APP_HOW_TO_POINT",
+      "category": "앱 사용법",
+      "question_patterns": [
+        "포인트는 어떻게 적립",
+        "포인트 얼마나 쌓여",
+        "포인트 적립 방법"
+      ],
+      "answer_source": "docs/app_guide.md#포인트-적립-방법",
+      "requires_user_context": false
+    },
+    {
+      "id": "APP_HOW_TO_TOMY",
+      "category": "앱 사용법",
+      "question_patterns": [
+        "토미 어떻게 키워",
+        "토미는 어떻게 성장",
+        "캐릭터 어떻게 레벨업"
+      ],
+      "answer_source": "docs/character_growth.md",
+      "requires_user_context": false
+    },
+    {
+      "id": "RECEIPT_FAIL_REASON",
+      "category": "영수증 인증 보조",
+      "question_patterns": [
+        "영수증 왜 실패",
+        "인증 안 되는 이유",
+        "영수증 인증 실패",
+        "포인트가 안 쌓여"
+      ],
+      "answer_source": "docs/receipt_policy.md#인증-실패-사유",
+      "requires_user_context": true,
+      "context_needed": ["last_receipt_failure_reason"]
+    },
+    {
+      "id": "RECEIPT_WRONG_NAME",
+      "category": "영수증 인증 보조",
+      "question_patterns": [
+        "가게명 다르게 인식",
+        "OCR 오류",
+        "가게 이름 틀려"
+      ],
+      "answer_source": "docs/receipt_policy.md#자주-발생하는-ocr-오류-패턴",
+      "requires_user_context": false
+    },
+    {
+      "id": "RECEIPT_DUPLICATE",
+      "category": "영수증 인증 보조",
+      "question_patterns": [
+        "같은 영수증 다시",
+        "중복 영수증",
+        "이미 인증된 영수증"
+      ],
+      "answer_source": "docs/receipt_policy.md#중복-영수증-정책",
+      "requires_user_context": false
+    },
+    {
+      "id": "RECEIPT_PHOTO_TIP",
+      "category": "영수증 인증 보조",
+      "question_patterns": [
+        "영수증 사진 어떻게",
+        "영수증 촬영 팁",
+        "사진 잘 찍는 방법"
+      ],
+      "answer_source": "docs/app_guide.md#영수증-사진-촬영-팁",
+      "requires_user_context": false
+    },
+    {
+      "id": "STORE_IS_ELIGIBLE",
+      "category": "가맹점 안내",
+      "question_patterns": [
+        "이 가게 포인트 되나요",
+        "여기서 쓸 수 있나요",
+        "가맹점인가요"
+      ],
+      "answer_source": "API:GET /api/stores/search?keyword={store_name}",
+      "requires_user_context": false,
+      "requires_api_call": true
+    },
+    {
+      "id": "STORE_LIST",
+      "category": "가맹점 안내",
+      "question_patterns": [
+        "어떤 가게에서",
+        "가맹점 목록",
+        "참여 가게"
+      ],
+      "answer_source": "API:GET /api/stores/search",
+      "requires_user_context": false,
+      "requires_api_call": true
+    },
+    {
+      "id": "STORE_BY_CATEGORY",
+      "category": "가맹점 안내",
+      "question_patterns": [
+        "음식점 알려줘",
+        "카페 목록",
+        "생활업종 가게"
+      ],
+      "answer_source": "API:GET /api/stores/search?category={category}",
+      "requires_user_context": false,
+      "requires_api_call": true
+    },
+    {
+      "id": "POINT_WHAT_TO_DO",
+      "category": "포인트 안내",
+      "question_patterns": [
+        "포인트로 뭐 할 수 있어",
+        "포인트 사용처",
+        "포인트 쓰는 방법"
+      ],
+      "answer_source": "docs/reward_policy.md",
+      "requires_user_context": false
+    },
+    {
+      "id": "POINT_NEXT_LEVEL",
+      "category": "캐릭터 안내",
+      "question_patterns": [
+        "다음 레벨까지 얼마나",
+        "레벨업하려면",
+        "exp 얼마나 필요"
+      ],
+      "answer_source": "API:GET /api/pet (현재 레벨/EXP 조회) + json/character_growth_policy.json",
+      "requires_user_context": true,
+      "context_needed": ["pet.level", "pet.exp"],
+      "requires_api_call": true
+    },
+    {
+      "id": "CHARACTER_GROWTH_CONDITION",
+      "category": "캐릭터 안내",
+      "question_patterns": [
+        "성장 조건",
+        "레벨업 조건",
+        "어떻게 키워"
+      ],
+      "answer_source": "docs/character_growth.md#레벨업-조건",
+      "requires_user_context": false
+    }
+  ],
+  "fallback_response": "죄송해요, 질문을 잘 이해하지 못했어요. 앱 사용법, 영수증 인증, 포인트, 토미 성장에 대해 물어보세요! 😊",
+  "context_required_fallback": "현재 로그인이 필요한 정보입니다. 앱에서 로그인 후 이용해 주세요."
+}

@@ -70,13 +70,13 @@ public class ReceiptParser {
     private static final Pattern AMOUNT_INLINE_PATTERN = Pattern.compile("\\d{1,3}(?:[.,]\\d{3})+\\s*원?|\\d{2,9}\\s*원");
     private static final Pattern STORE_TEXT_PATTERN = Pattern.compile("[가-힣A-Za-z]");
     private static final Pattern STORE_NOISE_PREFIX_PATTERN = Pattern.compile(
-            "^(신용승인|ic신용승인|전자서명전표|승인번호|전표번호|매입사|카드종류|카드번호|고객용|회원|합계|금액|세금|부가세|거래일시|승인일시|거래금액).*",
+            "^(신용승인|ic신용승인|전자서명전표|승인번호|전표번호|매입사|카드종류|카드번호|고객용|회원|합계|금액|세금|부가세|거래일시|승인일시|거래금액|고유번호|사업자번호|사업자등록번호|사업자|전화번호|저화번호|전화|tel).*",
             Pattern.CASE_INSENSITIVE
     );
 
     private static final Set<String> STORE_CUT_TOKENS = Set.of(
-            "전화번호", "저화번호", "주소", "합계", "총액", "결제금액", "승인금액", "승인번호", "전표",
-            "TID", "카드", "체크", "일시불", "가맹점 No", "가맹점번호", "사업자번호", "대표자", "고객용",
+            "전화번호", "저화번호", "전화", "주소", "합계", "총액", "결제금액", "승인금액", "승인번호", "전표",
+            "TID", "카드", "체크", "일시불", "가맹점 No", "가맹점번호", "사업자번호", "사업자", "고유번호", "대표자", "고객용",
             "감사합니다", "부가세", "공급가액", "KRW", "승인일시", "거래일시"
     );
     private static final Set<String> STORE_NOISE_LINES = Set.of(
@@ -855,6 +855,13 @@ public class ReceiptParser {
                 || BUSINESS_NUMBER_PATTERN.matcher(candidate).find()
                 || DATE_VALUE_PATTERN.matcher(candidate).find()
                 || containsMoney(candidate)) {
+            return false;
+        }
+
+        // 숫자가 전체 글자수의 절반 초과이면 번호류(사업자·전화·고유번호)로 간주
+        String stripped = candidate.replaceAll("\\s", "");
+        long digitCount = stripped.chars().filter(Character::isDigit).count();
+        if (digitCount > 3 && digitCount * 2 > stripped.length()) {
             return false;
         }
 

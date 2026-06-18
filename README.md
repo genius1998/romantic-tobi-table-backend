@@ -40,7 +40,7 @@
 ### 벡터 DB 기반 가게 매칭
 
 가게 매칭은 Qdrant 벡터 DB를 우선 조회하고, 검색된 후보를 이름/주소 점수와 LLM 보조 판정으로 검증합니다.
-가게 기준 데이터는 `src/main/resources/db/migration/V9__replace_store_with_merchant_excel.sql`에 반영된 `가맹점현황_조회_목록.xls` 기반 데이터입니다.
+가게 기준 데이터는 `src/main/resources/db/migration/V11__replace_store_with_gumi_restaurants_csv.sql`에 반영된 구미시 일반음식점 CSV 기반 데이터입니다.
 
 ```bash
 docker compose -f docker-compose.qdrant.yml up -d

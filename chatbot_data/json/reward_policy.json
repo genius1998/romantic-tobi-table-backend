@@ -1,0 +1,99 @@
+{
+  "point_earning_rules": [
+    {
+      "type": "RECEIPT_EARN",
+      "description": "영수증 인증 시 포인트 적립",
+      "formula": "결제금액 / 100 (소수점 버림)",
+      "example": "5000원 결제 → 50포인트",
+      "source": "ReceiptService.java:76"
+    },
+    {
+      "type": "GREETING_REWARD",
+      "description": "매일 인사하기",
+      "amount": 10,
+      "frequency": "하루 1회",
+      "source": "RewardService.java:125"
+    },
+    {
+      "type": "ACHIEVEMENT_REWARD",
+      "description": "업적 달성 보상",
+      "amount": "업적별 차등",
+      "source": "RewardService.java"
+    }
+  ],
+  "point_spending_rules": [
+    {
+      "type": "FEED_SPEND",
+      "description": "토미에게 먹이 주기",
+      "amount": "사용자 입력량"
+    },
+    {
+      "type": "CLOTHES_BUY",
+      "description": "토미 의상 구매",
+      "amount": "의상별 가격 (100~500포인트)"
+    },
+    {
+      "type": "REWARD_REDEEM",
+      "description": "기프티콘 교환",
+      "amount": "리워드별 cost_point"
+    }
+  ],
+  "achievement_rewards": [
+    {
+      "reward_name": "ATTENDANCE_5000",
+      "condition": "연속 출석 업적 전체 완료",
+      "value": 5000,
+      "currency": "KRW",
+      "redeemable_once": true
+    },
+    {
+      "reward_name": "FEEDING_5000",
+      "condition": "먹이 주기 업적 전체 완료",
+      "value": 5000,
+      "currency": "KRW",
+      "redeemable_once": true
+    },
+    {
+      "reward_name": "RECEIPT_5000",
+      "condition": "영수증 등록 업적 전체 완료",
+      "value": 5000,
+      "currency": "KRW",
+      "redeemable_once": true
+    },
+    {
+      "reward_name": "ALL_ACHIEVEMENTS_10000",
+      "condition": "전체 업적 완료",
+      "value": 10000,
+      "currency": "KRW",
+      "redeemable_once": true
+    }
+  ],
+  "seed_rewards": [
+    {
+      "id": 6001,
+      "reward_name": "커피 쿠폰",
+      "description": "아메리카노 교환권",
+      "cost_point": 1000,
+      "stock": 100
+    },
+    {
+      "id": 6002,
+      "reward_name": "영화 예매권",
+      "description": "영화 1인 예매권",
+      "cost_point": 5000,
+      "stock": 50
+    },
+    {
+      "id": 6003,
+      "reward_name": "치킨 기프티콘",
+      "description": "교환처에서 사용 가능",
+      "cost_point": 8000,
+      "stock": 30
+    }
+  ],
+  "todo": [
+    "포인트 유효기간 정책 확정 필요",
+    "하루 최대 영수증 인증 횟수 제한 여부 확정",
+    "최소 결제 금액 기준 확정"
+  ]
+}

@@ -6,6 +6,9 @@ import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
 @Entity
 @Table(name = "store")
 @Getter
@@ -24,6 +27,9 @@ public class Store {
     @Column(nullable = false)
     private String address;
 
+    @Column(name = "jibun_address")
+    private String jibunAddress;
+
     private String district;
 
     @Column(name = "primary_category")
@@ -33,4 +39,21 @@ public class Store {
     private String secondaryCategory;
 
     private String phone;
+
+    @Column(name = "coord_x")
+    private Double coordX;
+
+    @Column(name = "coord_y")
+    private Double coordY;
+
+    private BigDecimal area;
+
+    @Column(name = "licensed_at")
+    private LocalDate licensedAt;
+
+    @Column(columnDefinition = "TEXT")
+    private String aliases;
+
+    @Column(name = "reward_eligible", nullable = false)
+    private Boolean rewardEligible = true;
 }

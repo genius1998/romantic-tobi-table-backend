@@ -45,6 +45,10 @@ public class StoreMatchingService {
     private static final double LLM_ACCEPT_HIGH_RULE_NAME_SCORE = 0.74;
     private static final double LLM_ACCEPT_HIGH_RULE_ADDRESS_SCORE = 0.65;
     private static final double LLM_ACCEPT_HIGH_RULE_CONFIDENCE = 0.50;
+    // 이름은 정확히 맞지만 주소 확인 불가인 경우 완화된 LLM 수락 기준
+    private static final double LLM_STRONG_NAME_SCORE = 0.95;
+    private static final double LLM_STRONG_NAME_MAX_ADDRESS = 0.55;
+    private static final double LLM_STRONG_NAME_CONFIDENCE = 0.65;
     private static final double NAME_CONTAINMENT_BONUS = 0.04;
     private static final double ADDRESS_CONTAINMENT_BONUS = 0.12;
     private static final Pattern ADDRESS_DETAIL_PATTERN = Pattern.compile("([가-힣]{2,}(번길|로|길)|\\d)");
@@ -241,25 +245,47 @@ public class StoreMatchingService {
     }
 
     private boolean shouldAskLlm(EnhancedParsedReceipt receipt, ScoredStore best) {
-        return hasUsableAddress(receipt.address())
+        // 기존: 주소가 있을 때 LLM 호출
+        if (hasUsableAddress(receipt.address())
                 && best.score() >= LLM_REVIEW_SCORE
-                && (best.nameScore() >= 0.45 || best.semanticScore() >= 0.70);
+                && (best.nameScore() >= 0.45 || best.semanticScore() >= 0.70)) {
+            return true;
+        }
+        // 추가: 주소가 없어도 이름점수가 매우 높으면 LLM에게 판단 위임
+        return !hasUsableAddress(receipt.address())
+                && best.nameScore() >= LLM_STRONG_NAME_SCORE
+                && best.score() >= LLM_REVIEW_SCORE;
     }
 
     private boolean canAcceptLlmDecision(ScoredStore candidate, LlmDecision decision) {
-        boolean confidenceAccepted = decision != null
-                && (decision.confidence() >= LLM_ACCEPT_CONFIDENCE
-                || (decision.confidence() >= LLM_ACCEPT_HIGH_RULE_CONFIDENCE
+        if (decision == null || decision.matchedStoreId() == null) {
+            return false;
+        }
+
+        // 기존 경로 1: LLM 신뢰도 0.75 이상
+        boolean highConfidence = decision.confidence() >= LLM_ACCEPT_CONFIDENCE;
+
+        // 기존 경로 2: 규칙 점수가 높고 LLM 신뢰도 0.50 이상
+        boolean highRuleScore = decision.confidence() >= LLM_ACCEPT_HIGH_RULE_CONFIDENCE
                 && candidate.score() >= LLM_ACCEPT_HIGH_RULE_SCORE
                 && candidate.nameScore() >= LLM_ACCEPT_HIGH_RULE_NAME_SCORE
-                && candidate.addressScore() >= LLM_ACCEPT_HIGH_RULE_ADDRESS_SCORE));
+                && candidate.addressScore() >= LLM_ACCEPT_HIGH_RULE_ADDRESS_SCORE;
 
-        return decision != null
-                && decision.matchedStoreId() != null
-                && confidenceAccepted
+        // 신규 경로 3: 이름이 거의 정확하고(≥0.95) 주소 확인 불가(≤0.55)일 때 LLM 신뢰도 0.65로 완화
+        boolean strongNameNoAddress = candidate.nameScore() >= LLM_STRONG_NAME_SCORE
+                && candidate.addressScore() < LLM_STRONG_NAME_MAX_ADDRESS
+                && decision.confidence() >= LLM_STRONG_NAME_CONFIDENCE;
+
+        boolean confidenceAccepted = highConfidence || highRuleScore || strongNameNoAddress;
+
+        // 주소를 신뢰할 수 없는(이름 강 일치) 경우 주소 점수 하한을 면제
+        boolean addressOk = candidate.addressScore() >= LLM_ACCEPT_ADDRESS_SCORE
+                || candidate.nameScore() >= LLM_STRONG_NAME_SCORE;
+
+        return confidenceAccepted
                 && candidate.score() >= LLM_ACCEPT_SCORE
                 && candidate.nameScore() >= LLM_ACCEPT_NAME_SCORE
-                && candidate.addressScore() >= LLM_ACCEPT_ADDRESS_SCORE;
+                && addressOk;
     }
 
     private LlmDecision askLlm(EnhancedParsedReceipt receipt, List<ScoredStore> candidates) {

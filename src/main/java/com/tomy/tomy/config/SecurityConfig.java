@@ -48,8 +48,12 @@ public class SecurityConfig {
                 .requestMatchers("/api/stores/**").permitAll()
                 .requestMatchers("/api/clothes").permitAll()
                 .requestMatchers("/api/clothes/{id}").permitAll()
+                .requestMatchers("/", "/index.html", "/favicon.ico").permitAll()
                 .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 .requestMatchers("/error").permitAll()
+                // 챗봇 API — JWT 인증 필수
+                .requestMatchers("/api/chatbot/context/**").authenticated()
+                .requestMatchers("/api/chatbot/message").authenticated()
                 .anyRequest().authenticated()
             );
 

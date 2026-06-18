@@ -19,4 +19,10 @@ public interface ReceiptRepository extends JpaRepository<Receipt, Long> {
     boolean existsByStoreNameAndRecognizedDateAndTotalPrice(String storeName, LocalDate recognizedDate, Integer totalPrice);
 
     List<Receipt> findAllByUser(User user);
+
+    // 챗봇용: 최근 N건 영수증 조회 (최신순)
+    List<Receipt> findTopNByUserOrderByCreatedAtDesc(User user, org.springframework.data.domain.Pageable pageable);
+
+    // 챗봇용: 특정 사용자의 특정 영수증 조회 (소유권 검증용)
+    Optional<Receipt> findByIdAndUser(Long id, User user);
 }

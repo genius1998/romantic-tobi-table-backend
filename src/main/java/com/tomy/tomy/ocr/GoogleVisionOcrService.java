@@ -25,6 +25,9 @@ public class GoogleVisionOcrService implements OcrService {
     @Value("${gcp.vision.credentials:}")
     private String credentialsLocation;
 
+    private static final int MAX_RETRIES = 2;
+    private static final long RETRY_DELAY_MS = 1_500L;
+
     @Override
     public OcrResult extractText(MultipartFile file) {
         if (file == null || file.isEmpty())
@@ -39,15 +42,24 @@ public class GoogleVisionOcrService implements OcrService {
                     .build();
 
             try (ImageAnnotatorClient client = ImageAnnotatorClient.create(settings)) {
-                Image img = Image.newBuilder().setContent(ByteString.copyFrom(file.getBytes())).build();
+                byte[] imageBytes = file.getBytes();
+                Image img = Image.newBuilder().setContent(ByteString.copyFrom(imageBytes)).build();
                 Feature feat = Feature.newBuilder().setType(Feature.Type.DOCUMENT_TEXT_DETECTION).build();
                 AnnotateImageRequest req = AnnotateImageRequest.newBuilder()
                         .addFeatures(feat).setImage(img).build();
 
-                BatchAnnotateImagesResponse resp = client.batchAnnotateImages(List.of(req));
-                AnnotateImageResponse r = resp.getResponses(0);
-                if (r.hasError())
-                    throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Vision 오류: " + r.getError().getMessage());
+                AnnotateImageResponse r = null;
+                for (int attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+                    if (attempt > 0) {
+                        try { Thread.sleep(RETRY_DELAY_MS * attempt); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
+                    }
+                    BatchAnnotateImagesResponse resp = client.batchAnnotateImages(List.of(req));
+                    r = resp.getResponses(0);
+                    if (!r.hasError()) break;
+                    if (attempt == MAX_RETRIES) {
+                        throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Vision 오류: " + r.getError().getMessage());
+                    }
+                }
 
                 String text = r.getFullTextAnnotation() == null ? "" : r.getFullTextAnnotation().getText();
                 if (text.isBlank())

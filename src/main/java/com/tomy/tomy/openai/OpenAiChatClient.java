@@ -29,14 +29,13 @@ public class OpenAiChatClient {
 
     public OpenAiChatClient(
             OpenAiApiKeyResolver apiKeyResolver,
-            @Value("${openai.chat.model:gpt-5-nano}") String model,
-            @Value("${openai.chat.reasoning-effort:minimal}") String reasoningEffort
+            @Value("${openai.chat.model:gpt-4.1-mini}") String model
     ) {
         this.apiKeyResolver = apiKeyResolver;
         this.restTemplate = new RestTemplate();
         this.objectMapper = new ObjectMapper();
         this.model = model;
-        this.reasoningEffort = reasoningEffort;
+        this.reasoningEffort = null;
     }
 
     public OpenAiJsonResponse completeJson(String systemPrompt, String userPrompt, int maxCompletionTokens) {
@@ -53,9 +52,6 @@ public class OpenAiChatClient {
         body.put("response_format", Map.of("type", "json_object"));
         body.put("temperature", 0);
         body.put("max_completion_tokens", Math.max(maxCompletionTokens, 800));
-        if (reasoningEffort != null && !reasoningEffort.isBlank()) {
-            body.put("reasoning_effort", reasoningEffort);
-        }
 
         try {
             logger.info("Sending OpenAI chat completion request. model=" + model + ", reasoning_effort=" + reasoningEffort);
@@ -82,5 +78,9 @@ public class OpenAiChatClient {
 
     public String getModel() {
         return model;
+    }
+
+    private boolean usesDefaultOnlyTemperature(String modelName) {
+        return modelName != null && modelName.startsWith("gpt-5");
     }
 }

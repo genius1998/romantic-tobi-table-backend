@@ -1,4 +1,7 @@
 # WARNING: This file contains sensitive information. Do not commit it to version control.
+server:
+  forward-headers-strategy: framework
+
 spring:
   config:
     import: optional:file:.env[.properties]
@@ -24,13 +27,19 @@ jwt:
 receipt:
   duplicate-check:
     enabled: ${RECEIPT_DUPLICATE_CHECK_ENABLED:true}
+
+chatbot:
+  server:
+    base-url: ${CHATBOT_SERVER_BASE_URL:http://localhost:8001}
+    connect-timeout-ms: ${CHATBOT_CONNECT_TIMEOUT_MS:5000}
+    read-timeout-ms: ${CHATBOT_READ_TIMEOUT_MS:120000}
+    debug-log-enabled: ${CHATBOT_DEBUG_LOG_ENABLED:true}
 # OpenAI API Key
 openai:
   api:
     key: ${OPENAI_API_KEY:<openai api key>}
   chat:
-    model: ${OPENAI_CHAT_MODEL:gpt-5-nano}
-    reasoning-effort: ${OPENAI_CHAT_REASONING_EFFORT:minimal}
+    model: ${OPENAI_CHAT_MODEL:gpt-4.1-mini}
   embedding:
     model: ${OPENAI_EMBEDDING_MODEL:text-embedding-3-small}
     dimensions: ${OPENAI_EMBEDDING_DIMENSIONS:1536}

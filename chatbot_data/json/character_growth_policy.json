@@ -1,0 +1,63 @@
+{
+  "pet_name": "토미 (Tommy)",
+  "max_level": 5,
+  "exp_per_point": 1,
+  "level_up_exp_requirements": [
+    {
+      "from_level": 1,
+      "to_level": 2,
+      "required_exp": 300,
+      "description": "레벨 1에서 2로 올리려면 300 EXP 필요"
+    },
+    {
+      "from_level": 2,
+      "to_level": 3,
+      "required_exp": 600,
+      "description": "레벨 2에서 3으로 올리려면 600 EXP 필요"
+    },
+    {
+      "from_level": 3,
+      "to_level": 4,
+      "required_exp": 900,
+      "description": "레벨 3에서 4로 올리려면 900 EXP 필요"
+    },
+    {
+      "from_level": 4,
+      "to_level": 5,
+      "required_exp": 1200,
+      "description": "레벨 4에서 5로 올리려면 1200 EXP 필요"
+    }
+  ],
+  "level_up_carry_over": true,
+  "source": "PetService.java:28-34",
+  "clothes_categories": [
+    { "code": "HEAD", "description": "머리 장식 (모자, 리본 등)" },
+    { "code": "EYE",  "description": "눈 장식 (선글라스 등)" },
+    { "code": "FACE", "description": "얼굴 장식 (수염 등)" }
+  ],
+  "achievements": [
+    {
+      "code": "ATTENDANCE_SEQ",
+      "name": "연속 출석",
+      "type": "ATTENDANCE",
+      "description": "연속으로 n일 출석 시 달성 (매일 인사하기)"
+    },
+    {
+      "code": "RECEIPT",
+      "name": "영수증 등록",
+      "type": "RECEIPT",
+      "description": "영수증을 n번 등록 시 달성"
+    },
+    {
+      "code": "FEEDING",
+      "name": "먹이 주기",
+      "type": "FEEDING",
+      "description": "토미에게 먹이를 n번 줄 때마다 달성"
+    }
+  ],
+  "todo": [
+    "레벨별 외형 변화 이미지 URL 정책 확정 필요",
+    "레벨별 잠금 해제 의상 정책 확정 필요",
+    "AchievementMilestone 실제 milestone_value 값 확인 필요 (V6__insert_achievement_milestones.sql 확인)"
+  ]
+}
